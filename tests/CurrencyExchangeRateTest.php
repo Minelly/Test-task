@@ -2,11 +2,12 @@
 
 namespace App\Tests;
 
+use App\Exception\CurrencyRateNotFoundException;
 use App\Handler\CurrencyExchangeRate;
 use App\Provider\CurrencyRateDataProviderInterface;
 use PHPUnit\Framework\TestCase;
 
-class CurrencyConverterTest extends TestCase
+class CurrencyExchangeRateTest extends TestCase
 {
     public function testConvertToEur(): void
     {
@@ -44,8 +45,29 @@ class CurrencyConverterTest extends TestCase
             ->willReturn([]);
 
         $currencyExchangeRate = new CurrencyExchangeRate($currencyRateDataProviderMock);
-        $convertedAmount = $currencyExchangeRate->convertToEur('INVALID', 100);
 
-        $this->assertEquals(100, $convertedAmount);
+        $this->expectException(CurrencyRateNotFoundException::class);
+        $currencyExchangeRate->convertToEur('USD', 100);
+    }
+
+    public function testConvertToEurThrowsExceptionWhenRateNotFound(): void
+    {
+        $currency = 'XYZ';
+        $amount = 100;
+
+        $currencyRateDataProviderMock = $this->createMock(CurrencyRateDataProviderInterface::class);
+        $currencyRateDataProviderMock->method('getRates')->willReturn(
+            [
+                'USD' => 1.2,
+                'GBP' => 0.85,
+            ]
+        );
+
+        $currencyExchangeRate = new CurrencyExchangeRate($currencyRateDataProviderMock);
+
+        $this->expectException(CurrencyRateNotFoundException::class);
+        $this->expectExceptionMessage("Currency rate not found for: {$currency}");
+
+        $currencyExchangeRate->convertToEur($currency, $amount);
     }
 }

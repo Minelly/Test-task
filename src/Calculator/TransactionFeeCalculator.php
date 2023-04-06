@@ -8,6 +8,10 @@ use App\Handler\CurrencyExchangeInterface;
 
 class TransactionFeeCalculator implements TransactionFeeCalculatorInterface
 {
+    protected const EU_FEE_RATE = 0.01;
+
+    protected const OTHER_FEE_RATE = 0.02;
+
     protected BinLookupInterface $binLookup;
 
     protected CurrencyExchangeInterface $currencyConverter;
@@ -46,6 +50,6 @@ class TransactionFeeCalculator implements TransactionFeeCalculatorInterface
      */
     protected function getFee(float $amountEur, bool $isEu): float
     {
-        return $amountEur * ($isEu ? 0.01 : 0.02);
+        return $amountEur * ($isEu ? static::EU_FEE_RATE : static::OTHER_FEE_RATE);
     }
 }

@@ -2,6 +2,7 @@
 
 use App\Calculator\TransactionFeeCalculator;
 use App\Checker\Country\EuCountryChecker;
+use App\Exception\CurrencyRateNotFoundException;
 use App\Handler\BinLookup;
 use App\Handler\CurrencyExchangeRate;
 use App\Provider\BinDataProvider;
@@ -26,11 +27,18 @@ foreach ($transactions as $transaction) {
     }
 
     $transactionData = json_decode($transaction, true);
-    $fee = $calculator->calculateFee(
-        $transactionData['bin'],
-        $transactionData['currency'],
-        (float)  $transactionData['amount'],
-    );
+
+    try {
+        $fee = $calculator->calculateFee(
+            $transactionData['bin'],
+            $transactionData['currency'],
+            (float)  $transactionData['amount'],
+        );
+    } catch (CurrencyRateNotFoundException $e) {
+        echo $e->getMessage() . PHP_EOL;
+
+        continue;
+    }
 
     echo $fee . PHP_EOL;
 }

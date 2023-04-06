@@ -2,6 +2,7 @@
 
 namespace App\Handler;
 
+use App\Exception\CurrencyRateNotFoundException;
 use App\Provider\CurrencyRateDataProviderInterface;
 
 class CurrencyExchangeRate implements CurrencyExchangeInterface
@@ -23,8 +24,13 @@ class CurrencyExchangeRate implements CurrencyExchangeInterface
         }
 
         $rates = $this->currencyRateDataProvider->getRates();
-        $rate = $rates[$currency] ?? 0;
 
-        return $rate > 0 ? $amount / $rate : $amount;
+        if (!isset($rates[$currency])) {
+            throw new CurrencyRateNotFoundException($currency);
+        }
+
+        $rate = $rates[$currency];
+
+        return $amount / $rate;
     }
 }
